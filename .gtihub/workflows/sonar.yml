@@ -3,7 +3,7 @@ name: PR Checks
 on:
   pull_request:
     branches:
-      - "**"  # Triggers when a PR is opened to main from any branch
+      - main  # Triggers when a PR is opened to main from any branch
 
 jobs:
   build:
