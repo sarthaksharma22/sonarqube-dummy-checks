@@ -3,7 +3,8 @@ name: PR Checks
 on:
   pull_request:
     branches:
-      - main  # Triggers when a PR is opened to main from any branch
+      - main  # Triggers only when a PR is made to the main branch
+  workflow_dispatch:  # Allows manual trigger for debugging
 
 jobs:
   build:
@@ -25,6 +26,9 @@ jobs:
   dummy-sonarqube:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
       - name: Dummy SonarQube Check
         run: |
           echo "✅ SonarQube check passed (Dummy Check)"
