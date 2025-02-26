@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: sarthaksharma22/actions/checkout@v3  # Use your forked version of actions/checkout
 
       - name: Install Dependencies
         run: |
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: sarthaksharma22/actions/checkout@v3  # Use your forked version of actions/checkout
 
       - name: Dummy SonarQube Check
         run: |
@@ -39,6 +39,4 @@ jobs:
       - name: Checkout UI Automation Repo
         run: |
           echo "Cloning UI automation repo (dummy step)"
-          # git clone -b dev --single-branch git@github.com:your-org/ui-automation-repo.git
-          echo "Running dummy UI tests"
-          echo "✅ UI Tests Passed"
+          # git clone -b dev
