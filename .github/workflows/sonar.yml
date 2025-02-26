@@ -3,40 +3,61 @@ name: PR Checks
 on:
   pull_request:
     branches:
-      - main  # Triggers only when a PR is made to the main branch
-  workflow_dispatch:  # Allows manual trigger for debugging
+      - '**'  # Trigger on PRs from any branch
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: sarthaksharma22/actions/checkout@v3  # Use your forked version of actions/checkout
+        uses: actions/checkout@v3
 
-      - name: Install Dependencies
+      - name: Hello World Step
         run: |
-          echo "Installing dependencies"
-          npm install --legacy-peer-deps
+          echo "Hello World!"
+          echo "This is a custom check for the PR"
 
-      - name: Build Project
-        run: |
-          echo "Building project"
-          npm run build
-
-  dummy-sonarqube:
+  custom-checks:
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: Checkout Code
-        uses: sarthaksharma22/actions/checkout@v3  # Use your forked version of actions/checkout
+        uses: actions/checkout@v3
 
-      - name: Dummy SonarQube Check
+      - name: Run Custom Check 1
         run: |
-          echo "✅ SonarQube check passed (Dummy Check)"
+          echo "Running custom check 1"
+          # Add your custom check logic here
+          # Example: Ensure certain files are changed in the PR
+          if [[ -z "$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'src/')" ]]; then
+            echo "Custom Check 1 Passed: No changes in 'src/' directory"
+          else
+            echo "Custom Check 1 Failed: Changes detected in 'src/' directory"
+            exit 1
+          fi
 
-  ui-test-automation:
+      - name: Run Custom Check 2
+        run: |
+          echo "Running custom check 2"
+          # Example: Check if a specific file exists or meets certain criteria
+          if [ -f "README.md" ]; then
+            echo "Custom Check 2 Passed: 'README.md' file exists"
+          else
+            echo "Custom Check 2 Failed: 'README.md' file is missing"
+            exit 1
+          fi
+
+  notification:
     runs-on: ubuntu-latest
+    needs: custom-checks
     steps:
-      - name: Checkout UI Automation Repo
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Send Notification
         run: |
-          echo "Cloning UI automation repo (dummy step)"
-          # git clone -b dev
+          echo "Sending a notification or alert"
+          # Here you can add any notification steps like sending an email or Slack message
+          # For now, it's just printing a message
+          echo "All checks are complete!"
+
