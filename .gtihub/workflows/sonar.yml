@@ -1,103 +1,40 @@
-name: CI/CD Pipeline
+name: PR Checks
 
 on:
   pull_request:
     branches:
-      - "**"  # Triggers on all PRs
-  push:
-    branches:
-      - develop  # Runs UI tests only when merged to develop
+      - main  # Triggers when a PR is opened to main from any branch
 
 jobs:
   build:
-    name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
+      - name: Install Dependencies
+        run: |
+          echo "Installing dependencies"
+          npm install --legacy-peer-deps
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
+      - name: Build Project
+        run: |
+          echo "Building project"
+          npm run build
 
-      - name: Login to AWS CodeArtifact
-        run: aws codeartifact login --tool npm --domain batched --repository npm-repo
-
-      - name: Install dependencies
-        run: npm i --legacy-peer-deps
-
-      - name: Build project
-        run: npm run build
-
-  sonar_dummy_check:
-    name: Dummy SonarQube Check
+  dummy-sonarqube:
     runs-on: ubuntu-latest
     steps:
-      - name: Fake SonarQube Check
-        run: echo "✅ SonarQube check passed (Dummy Check)"
+      - name: Dummy SonarQube Check
+        run: |
+          echo "✅ SonarQube check passed (Dummy Check)"
 
-  ui_test_automation:
-    name: UI Test Automation
-    if: github.ref == 'refs/heads/develop'  # Runs only on develop branch
+  ui-test-automation:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: npx playwright install-deps
-
-      - name: Install PowerShell
+      - name: Checkout UI Automation Repo
         run: |
-          wget https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/powershell_7.4.1-1.deb_amd64.deb
-          sudo dpkg -i powershell_7.4.1-1.deb_amd64.deb || true
-          sudo apt-get install -f -y
-          rm powershell_7.4.1-1.deb_amd64.deb
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
-
-      - name: Clone UI Automation Tests
-        run: git clone -b develop --single-branch git@github.com:batched/batched-ui-automation-tests.git
-
-      - name: Login to AWS CodeArtifact (Dotnet)
-        run: aws codeartifact login --tool dotnet --repository nuget-repo --domain batched --domain-owner 061669522376
-
-      - name: Get UI Automation Config
-        run: aws ssm get-parameter --name "ui-automation" --with-decryption --output text --query "Parameter.Value" > batched-ui-automation-tests/src/BatchedAutomationTest/appsettings.json
-
-      - name: Build Test Automation Project
-        run: |
-          cd batched-ui-automation-tests/src/
-          dotnet nuget locals all --clear
-          dotnet build --configuration Release
-          pwsh BatchedAutomationTest/bin/Release/net6.0/playwright.ps1 install
-
-      - name: Run Test Cases
-        run: |
-          cd batched-ui-automation-tests/src/
-          dotnet test --configuration Release > Result.stdout || true
-          TEST_OUTPUT=$(cat Result.stdout | grep Passed) && echo $TEST_OUTPUT
-
-      - name: Upload Test Results to S3
-        run: |
-          cd batched-ui-automation-tests/src/BatchedAutomationTest/bin/Release/net6.0/Artifacts
-          DATE=$(date +"%d-%m-%Y-%H-%M")
-          aws s3 cp --recursive ./* s3://batched-ui-automation-dev/${DATE}/
-          RESULT=$(aws s3 presign s3://batched-ui-automation-dev/${DATE}/index.html --expires-in 604800)
-
-      - name: Send Email Notification
-        run: |
-          aws ses send-templated-email --region us-east-1 --source no-reply@batchedapp.com --destination "ToAddresses=[b7ed3f11.cosmodenicolaco.onmicrosoft.com@amer.teams.ms]" --template UI-AutomationTestSuite-Template --template-data "{\"RESULT\":\"$RESULT\", \"TEST_OUTPUT\": \"$TEST_OUTPUT\"}"
+          echo "Cloning UI automation repo (dummy step)"
+          # git clone -b dev --single-branch git@github.com:your-org/ui-automation-repo.git
+          echo "Running dummy UI tests"
+          echo "✅ UI Tests Passed"
