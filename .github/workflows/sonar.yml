@@ -16,19 +16,21 @@ jobs:
       - name: Checkout Code (Using Git Clone)
         run: |
           echo "Cloning repository..."
-          git clone https://github.com/${{ github.repository }} $GITHUB_WORKSPACE
-          cd $GITHUB_WORKSPACE
+          git clone https://github.com/${{ github.repository }} repo
+          cd repo
+          ls -la  # Check if files exist
 
       - name: Install Dependencies
         run: |
           echo "Installing dependencies..."
-          cd $GITHUB_WORKSPACE
+          cd repo  # Ensure we are in the correct directory
+          if [ ! -f "package.json" ]; then echo "❌ ERROR: package.json not found!"; exit 1; fi
           npm install --legacy-peer-deps
 
       - name: Build Project
         run: |
           echo "Building project..."
-          cd $GITHUB_WORKSPACE
+          cd repo  # Ensure we are in the correct directory
           npm run build
 
   dummy-sonarqube:
@@ -38,8 +40,8 @@ jobs:
       - name: Checkout Code (Using Git Clone)
         run: |
           echo "Cloning repository..."
-          git clone https://github.com/${{ github.repository }} $GITHUB_WORKSPACE
-          cd $GITHUB_WORKSPACE
+          git clone https://github.com/${{ github.repository }} repo
+          cd repo
 
       - name: Dummy SonarQube Check
         run: |
@@ -53,8 +55,8 @@ jobs:
       - name: Checkout Code (Using Git Clone)
         run: |
           echo "Cloning repository..."
-          git clone https://github.com/${{ github.repository }} $GITHUB_WORKSPACE
-          cd $GITHUB_WORKSPACE
+          git clone https://github.com/${{ github.repository }} repo
+          cd repo
 
       - name: Run UI Tests
         run: |
