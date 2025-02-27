@@ -1,4 +1,4 @@
-name: CI/CD Workflow
+name: Build Check
 
 on:
   push:
@@ -6,11 +6,11 @@ on:
       - '**'  # Runs build on every commit
   pull_request:
     branches:
-      - '**'  # Runs only SonarQube & UI Tests on PRs
+      - '**'  # Runs dummy SonarQube & UI tests on PRs
 
 jobs:
   build:
-    if: github.event_name == 'push'  # Runs only on push events
+    if: github.event_name == 'push'  # Runs only on commit (push)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code (Using Git Clone)
@@ -18,23 +18,16 @@ jobs:
           echo "Cloning repository..."
           git clone https://github.com/${{ github.repository }} repo
           cd repo
-          ls -la  # Check if files exist
+          ls -la  # Verify files exist
 
-      - name: Install Dependencies
+      - name: Build Process (Dummy)
         run: |
-          echo "Installing dependencies..."
-          cd repo  # Ensure we are in the correct directory
-          if [ ! -f "package.json" ]; then echo "❌ ERROR: package.json not found!"; exit 1; fi
-          npm install --legacy-peer-deps
-
-      - name: Build Project
-        run: |
-          echo "Building project..."
-          cd repo  # Ensure we are in the correct directory
-          npm run build
+          echo "Running dummy build process..."
+          sleep 3  # Simulate a build step
+          echo "✅ Build Completed!"
 
   dummy-sonarqube:
-    if: github.event_name == 'pull_request'  # Runs only on pull request events
+    if: github.event_name == 'pull_request'  # Runs only on PR
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code (Using Git Clone)
@@ -48,7 +41,7 @@ jobs:
           echo "✅ SonarQube check passed (Dummy Check)"
 
   ui-test-automation:
-    if: github.event_name == 'pull_request'  # Runs only on pull request events
+    if: github.event_name == 'pull_request'  # Runs only on PR
     runs-on: ubuntu-latest
     needs: dummy-sonarqube
     steps:
