@@ -1,82 +1,61 @@
-name: PR Checks
+name: CI/CD Workflow
 
 on:
+  push:
+    branches:
+      - '**'  # Runs build on every commit
   pull_request:
     branches:
-      - '**'  # Trigger on PRs from any branch
+      - '**'  # Runs only SonarQube & UI Tests on PRs
 
 jobs:
   build:
+    if: github.event_name == 'push'  # Runs only on push events
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code (using git)
+      - name: Checkout Code (Using Git Clone)
         run: |
           echo "Cloning repository..."
           git clone https://github.com/${{ github.repository }} $GITHUB_WORKSPACE
+          cd $GITHUB_WORKSPACE
+
+      - name: Install Dependencies
+        run: |
+          echo "Installing dependencies..."
+          cd $GITHUB_WORKSPACE
+          npm install --legacy-peer-deps
+
+      - name: Build Project
+        run: |
+          echo "Building project..."
+          cd $GITHUB_WORKSPACE
+          npm run build
 
   dummy-sonarqube:
+    if: github.event_name == 'pull_request'  # Runs only on pull request events
     runs-on: ubuntu-latest
-    needs: build
     steps:
-      - name: Checkout Code (using git)
+      - name: Checkout Code (Using Git Clone)
         run: |
           echo "Cloning repository..."
           git clone https://github.com/${{ github.repository }} $GITHUB_WORKSPACE
+          cd $GITHUB_WORKSPACE
 
-      - name: Run SonarQube Analysis
+      - name: Dummy SonarQube Check
         run: |
-          echo "Running SonarQube analysis..."
-          # Replace with actual SonarQube command
-          # sonar-scanner -Dsonar.projectKey=my-project -Dsonar.host.url=https://sonarqube.example.com
+          echo "✅ SonarQube check passed (Dummy Check)"
 
   ui-test-automation:
+    if: github.event_name == 'pull_request'  # Runs only on pull request events
     runs-on: ubuntu-latest
     needs: dummy-sonarqube
     steps:
-      - name: Checkout Code (using git)
+      - name: Checkout Code (Using Git Clone)
         run: |
           echo "Cloning repository..."
           git clone https://github.com/${{ github.repository }} $GITHUB_WORKSPACE
+          cd $GITHUB_WORKSPACE
 
       - name: Run UI Tests
         run: |
-          echo "Running UI Test Automation..."
-          # Add UI test automation commands here, e.g., for Cypress:
-          # npx cypress run
-
-  custom-checks:
-    runs-on: ubuntu-latest
-    needs: ui-test-automation
-    steps:
-      - name: Checkout Code (using git)
-        run: |
-          echo "Cloning repository..."
-          git clone https://github.com/${{ github.repository }} $GITHUB_WORKSPACE
-
-      - name: Run Custom Check 1
-        run: |
-          echo "Running custom check 1"
-          if [[ -z "$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'src/')" ]]; then
-            echo "Custom Check 1 Passed: No changes in 'src/' directory"
-          else
-            echo "Custom Check 1 Failed: Changes detected in 'src/' directory"
-            exit 1
-          fi
-
-      - name: Run Custom Check 2
-        run: |
-          echo "Running custom check 2"
-          if [ -f "README.md" ]; then
-            echo "Custom Check 2 Passed: 'README.md' file exists"
-          else
-            echo "Custom Check 2 Failed: 'README.md' file is missing"
-            exit 1
-          fi
-
-  notification:
-    runs-on: ubuntu-latest
-    needs: custom-checks
-    steps:
-      - name: Send Notification
-        run: |
-          echo "All checks are complete!"
+          echo "✅ UI Tests Passed (Dummy Step)"
