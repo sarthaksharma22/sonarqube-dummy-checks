@@ -59,8 +59,8 @@ jobs:
         run: |
           cd repo
           /opt/sonar-scanner/bin/sonar-scanner \
-            -Dsonar.projectKey=sarthak22 \
-            -Dsonar.organization=Sarthak22 \
+            -Dsonar.projectKey=sarthaksharma22_sonarqube-dummy-checks \
+            -Dsonar.organization=sarthak22 \
             -Dsonar.sources=. \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
