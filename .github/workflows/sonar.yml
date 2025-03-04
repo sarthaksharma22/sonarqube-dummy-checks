@@ -49,34 +49,15 @@ jobs:
           echo "Installing SonarScanner..."
           curl -fsSL https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip -o sonar-scanner.zip
           unzip sonar-scanner.zip
-          mv sonar-scanner-5.0.1.3006-linux sonar-scanner
-          echo "$PWD/sonar-scanner/bin" >> $GITHUB_PATH
-          sonar-scanner -v
+          sudo mv sonar-scanner-5.0.1.3006-linux /opt/sonar-scanner
+          echo "export PATH=\$PATH:/opt/sonar-scanner/bin" >> ~/.bashrc
+          source ~/.bashrc
+          /opt/sonar-scanner/bin/sonar-scanner -v  # Verify installation
 
       - name: Run SonarQube Analysis
         run: |
           cd repo
-          sonar-scanner \
-            -Dsonar.projectKey=sarthaksharma22  # Your SonarCloud project key
-            -Dsonar.organization=sarthaksharma22  # Your SonarCloud organization
-            -Dsonar.sources=.  # Source directory
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}  # SonarCloud token
-
-  sonarqube:
-    name: SonarQube
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code (Using Git Clone)
-        run: |
-          echo "Cloning repository..."
-          git clone https://github.com/${{ github.repository }} repo
-          cd repo
-
-      - name: SonarQube Scan
-        run: |
-          cd repo
-          sonar-scanner \
+          /opt/sonar-scanner/bin/sonar-scanner \
             -Dsonar.projectKey=sarthaksharma22  # Your SonarCloud project key
             -Dsonar.organization=sarthaksharma22  # Your SonarCloud organization
             -Dsonar.sources=.  # Source directory
