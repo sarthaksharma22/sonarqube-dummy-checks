@@ -6,11 +6,11 @@ on:
       - '**'  # Runs build on every commit
   pull_request:
     branches:
-      - '**'  # Runs dummy SonarQube & UI tests on PRs
+      - '**'  # Runs SonarQube & UI tests on PRs
 
 jobs:
   build:
-    if: github.event_name == 'push'  # Runs only on commit (push)
+    if: github.event_name == 'push'  # Runs only on push
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code (Using Git Clone)
@@ -26,24 +26,47 @@ jobs:
           sleep 3  # Simulate a build step
           echo "✅ Build Completed!"
 
-  dummy-sonarqube:
+  sonarqube-analysis:
     if: github.event_name == 'pull_request'  # Runs only on PR
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code (Using Git Clone)
-        run: |
-          echo "Cloning repository..."
-          git clone https://github.com/${{ github.repository }} repo
-          cd repo
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Dummy SonarQube Check
+      - name: Set up JDK (For Java Projects)
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache SonarQube Packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Install SonarScanner
         run: |
-          echo "✅ SonarQube check passed (Dummy Check)"
+          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+          unzip sonar-scanner.zip
+          sudo mv sonar-scanner-5.0.1.3006-linux /opt/sonar-scanner
+          echo "SONAR_SCANNER_HOME=/opt/sonar-scanner" >> $GITHUB_ENV
+          echo "/opt/sonar-scanner/bin" >> $GITHUB_PATH
+
+      - name: Run SonarQube Analysis
+        run: |
+          sonar-scanner \
+            -Dsonar.projectKey=your-project-key \
+            -Dsonar.organization=your-org \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
   ui-test-automation:
     if: github.event_name == 'pull_request'  # Runs only on PR
     runs-on: ubuntu-latest
-    needs: dummy-sonarqube
+    needs: sonarqube-analysis
     steps:
       - name: Checkout Code (Using Git Clone)
         run: |
