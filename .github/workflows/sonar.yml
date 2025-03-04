@@ -5,8 +5,7 @@ on:
     branches:
       - '**'  # Run on all branches
   pull_request:
-    branches:
-      - '**'  # Run on PRs
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: read  # Required for SonarQube analysis
@@ -55,6 +54,26 @@ jobs:
           sonar-scanner -v
 
       - name: Run SonarQube Analysis
+        run: |
+          cd repo
+          sonar-scanner \
+            -Dsonar.projectKey=sarthaksharma22  # Your SonarCloud project key
+            -Dsonar.organization=sarthaksharma22  # Your SonarCloud organization
+            -Dsonar.sources=.  # Source directory
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}  # SonarCloud token
+
+  sonarqube:
+    name: SonarQube
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code (Using Git Clone)
+        run: |
+          echo "Cloning repository..."
+          git clone https://github.com/${{ github.repository }} repo
+          cd repo
+
+      - name: SonarQube Scan
         run: |
           cd repo
           sonar-scanner \
